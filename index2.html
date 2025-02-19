@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Motor Controller</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Control Your Arduino Motor</h1>
+    <button onclick="sendCommand('A')">Start Motor 1</button>
+    <button onclick="sendCommand('B')">Stop Motors</button>
+    <button onclick="sendCommand('C')">Run Motor 1 Slow</button>
+    <button onclick="sendCommand('D')">Run Motor 2 Slow</button>
+    <button onclick="sendCommand('E')">Run Motor 1 Fast, Motor 2 Slow</button>
+    <button onclick="sendCommand('F')">Run Motor 2 Fast, Motor 1 Slow</button>
+
+    <script>
+        let device;
+        let server;
+        let characteristic;
+
+        async function connectBluetooth() {
+            try {
+                device = await navigator.bluetooth.requestDevice({
+                    filters: [{ services: ['<215FCA92-8A86-E67A-9342-04E00D8E64C7>'] }] // Replace with your service UUID
+                });
+                server = await device.gatt.connect();
+                characteristic = await server.getPrimaryService('<215FCA92-8A86-E67A-9342-04E00D8E64C7>').getCharacteristic('<215FCA92-8A86-E67A-9342-04E00D8E64C7
+>'); // Replace with your characteristic UUID
+                console.log('Bluetooth connected');
+            } catch (error) {
+                console.error('Bluetooth connection failed:', error);
+            }
+        }
+
+        async function sendCommand(command) {
+            if (!characteristic) {
+                console.log('Connecting to Bluetooth...');
+                await connectBluetooth();
+            }
+            const encoder = new TextEncoder('utf-8');
+            const commandData = encoder.encode(command + '\n'); // Send command with newline
+            await characteristic.writeValue(commandData);
+            console.log('Command sent:', command);
+        }
+    </script>
+</body>
+</html>
